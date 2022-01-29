@@ -11,7 +11,7 @@ namespace ApiOrderProducts.Endpoints.Employees
         public static string[] Methods => new string[] { HttpMethod.Get.ToString() };
         public static Delegate Handle => Action;
 
-        public static IResult Action(int? page, int? rows, IConfiguration configuration)
+        public static IResult Action(int page, int rows, IConfiguration configuration)
         {
             //Aqui utilizamos o Dapper, uma lib mantida pelo stackoverflow para ganhar performace em consultas que 
             //precisa de muitas interações como a relação de Users e Claims.
@@ -19,10 +19,15 @@ namespace ApiOrderProducts.Endpoints.Employees
 
             //Micro ERM que vai fazer a consulta inserindo na classe EmployeeResponse
             var db = new NpgsqlConnection(configuration["ConnectionString:OrderProducts"]);
-            var employees = db.Query<EmployeeResponse>(
-                @"select ""Email"",""ClaimValue"" as Name 
-                  from ""AspNetUsers"" anu inner join ""AspNetUserClaims"" anuc
-                  on anu.""Id"" = anuc.""UserId"" and anuc.""ClaimType"" = 'Name'");
+
+            var query = @"select ""Email"",""ClaimValue"" as Name 
+                          from ""AspNetUsers"" anu inner join ""AspNetUserClaims"" anuc
+                          on anu.""Id"" = anuc.""UserId"" and anuc.""ClaimType"" = 'Name'
+                          order by Name
+                          LIMIT @rows
+                          OFFSET (@page -1) * @rows";
+
+            var employees = db.Query<EmployeeResponse>(query, new {page, rows});
 
             return Results.Ok(employees);
             
