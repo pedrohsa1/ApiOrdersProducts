@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
 namespace ApiOrderProducts.Endpoints.Employees
@@ -9,6 +10,7 @@ namespace ApiOrderProducts.Endpoints.Employees
         public static string[] Methods => new string[] { HttpMethod.Post.ToString() };
         public static Delegate Handle => Action;
 
+        [Authorize(Policy = "EmployeePolicy")] //Só pode ser acessado se o usuário autenticado tiver o EmployeeCode
         public static IResult Action(EmployeeRequest employeeRequest, UserManager<IdentityUser> userManager)
         {
             //para salvar o usuário, precisamos de um serviço chamado UserManager e não o Context
