@@ -14,6 +14,7 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     options.Password.RequireLowercase = false;
     options.Password.RequiredLength = 3;
 }).AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddScoped<QueryAllUsersWithClaimName>(); // Quando a classe ser instanciada pelo asp .net estará na memória
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

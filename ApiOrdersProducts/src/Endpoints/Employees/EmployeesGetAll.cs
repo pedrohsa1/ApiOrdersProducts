@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿using ApiOrderProducts.Infra.Data;
+using Dapper;
 using Microsoft.AspNetCore.Identity;
 using Npgsql;
 using System.Security.Claims;
@@ -11,26 +12,10 @@ namespace ApiOrderProducts.Endpoints.Employees
         public static string[] Methods => new string[] { HttpMethod.Get.ToString() };
         public static Delegate Handle => Action;
 
-        public static IResult Action(int page, int rows, IConfiguration configuration)
+        public static async Task<IResult> Action(int? page, int? rows, QueryAllUsersWithClaimName query)
         {
-            //Aqui utilizamos o Dapper, uma lib mantida pelo stackoverflow para ganhar performace em consultas que 
-            //precisa de muitas interações como a relação de Users e Claims.
-            //O Dapper precisa de uma conexão com BD independente aou do Entity Framework, neste caso passamos o IConfiguration
-
-            //Micro ERM que vai fazer a consulta inserindo na classe EmployeeResponse
-            var db = new NpgsqlConnection(configuration["ConnectionString:OrderProducts"]);
-
-            var query = @"select ""Email"",""ClaimValue"" as Name 
-                          from ""AspNetUsers"" anu inner join ""AspNetUserClaims"" anuc
-                          on anu.""Id"" = anuc.""UserId"" and anuc.""ClaimType"" = 'Name'
-                          order by Name
-                          LIMIT @rows
-                          OFFSET (@page -1) * @rows";
-
-            var employees = db.Query<EmployeeResponse>(query, new {page, rows});
-
-            return Results.Ok(employees);
-            
+            var result = query.Execute(page.Value, rows.Value);
+            return Results.Ok(result);
         }
     }
 }
